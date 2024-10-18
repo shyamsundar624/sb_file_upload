@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -18,11 +19,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shyam.file.model.User;
 
 @RestController
 public class UserRestController {
 	private final Path root = Paths.get("upload");
+	@Autowired
+	private ObjectMapper mapper;
 
 	@PostMapping("/user")
 	public ResponseEntity<String> createUser(@RequestBody User user) {
@@ -46,8 +52,10 @@ public class UserRestController {
 
 	@PostMapping("/user-profile")
 	public ResponseEntity<String> userCreation(@RequestParam("user") String user,
-			@RequestParam("file") MultipartFile file) {
+			@RequestParam("file") MultipartFile file) throws JsonMappingException, JsonProcessingException {
 		System.out.println(user);
+		User convertValue = mapper.readValue(user, User.class);
+		System.out.println(convertValue);
 		try {
 			Files.copy(file.getInputStream(), root.resolve(file.getOriginalFilename()));
 		} catch (Exception e) {
@@ -55,17 +63,16 @@ public class UserRestController {
 		}
 		return new ResponseEntity<>("User Profile is Created", HttpStatus.OK);
 	}
-	
+
 	@GetMapping("/file/{filename}")
-	public ResponseEntity<Resource> getFile(@PathVariable String filename) throws MalformedURLException{
+	public ResponseEntity<Resource> getFile(@PathVariable String filename) throws MalformedURLException {
 		Path path = this.root.resolve(filename);
-		
-		Resource file=new UrlResource(path.toUri());
-		if(file.exists()) {
+
+		Resource file = new UrlResource(path.toUri());
+		if (file.exists()) {
 			return ResponseEntity.ok()
-					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename="+file.getFilename())
-					.body(file);
-		}else {
+					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + file.getFilename()).body(file);
+		} else {
 			throw new RuntimeException("File Not Found");
 		}
 	}

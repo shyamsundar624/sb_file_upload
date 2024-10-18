@@ -11,7 +11,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shyam.file.entity.File;
+import com.shyam.file.entity.Student;
 import com.shyam.file.service.FileService;
 
 import lombok.RequiredArgsConstructor;
@@ -23,6 +27,7 @@ public class FileRestController {
 
 	private final FileService fileService;
 	
+	private final ObjectMapper mapper;
 	
 	@PostMapping("/upload")
 	public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file){
@@ -40,5 +45,13 @@ public class FileRestController {
 				.header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\""+file.getFilename()+"\"")
 				.body(file.getData());
 						
+	}
+	
+	@PostMapping("/student")
+	public ResponseEntity<String> saveStudentInfo(@RequestParam("student") String student,@RequestParam("file") MultipartFile file) throws JsonMappingException, JsonProcessingException{
+		Student stuObj = mapper.readValue(student,Student.class);
+	fileService.SaveDataWithFile(stuObj, file);
+	
+	return ResponseEntity.ok("Student Info Saved Successfully");
 	}
 }

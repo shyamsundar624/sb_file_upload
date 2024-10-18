@@ -7,7 +7,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.shyam.file.entity.File;
+import com.shyam.file.entity.Student;
 import com.shyam.file.repo.FileRepository;
+import com.shyam.file.repo.StudentRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -16,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 public class FileService {
 
 	private final FileRepository fileRepository;
+	private final StudentRepository  studentRepo;
 
 public File storeFile(MultipartFile file) {
 	String filename = file.getOriginalFilename();
@@ -33,5 +36,12 @@ throw new RuntimeException("Could not store file "+filename+" . Please try agaia
 
 public Optional<File> getFile(Long fileId){
 	return fileRepository.findById(fileId);
+}
+
+public void SaveDataWithFile(Student student,MultipartFile file) {
+	File fileObj = storeFile(file);
+	
+	student.setDocId(fileObj.getId());
+	studentRepo.save(student);
 }
 }
